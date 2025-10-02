@@ -6,10 +6,10 @@ import com.example.wigellgymservice.models.DTO.DTOGymBooking;
 import com.example.wigellgymservice.models.entities.GymBooking;
 import com.example.wigellgymservice.models.entities.GymCustomer;
 import com.example.wigellgymservice.models.entities.GymWorkout;
-import com.example.wigellgymservice.services.util.util.CurrencyConverter;
 import com.example.wigellgymservice.repositories.GymBookingRepository;
 import com.example.wigellgymservice.repositories.GymCustomerRepository;
 import com.example.wigellgymservice.repositories.GymWorkoutRepository;
+import com.example.wigellgymservice.services.util.util.CurrencyConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,24 +44,23 @@ public class GymBookingServiceImpl implements GymBookingService {
 
     //User
     @Override
-    public DTOGymBooking bookWorkout(String username, Authentication authentication, Long workoutId) {
+    public DTOGymBooking bookWorkout(Authentication authentication, Long workoutId) {
 
-        GymCustomer customer = findCustomer(username);
+        GymCustomer customer = findCustomer(authentication.getName());
         GymWorkout workout = findWorkout(workoutId);
 
         if(workout.getDateTime().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Workout has already happened");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Workout has already happened/started");
         }
 
         List<GymBooking> customerBookings = gymBookingRepository.findAllByIsActiveTrueAndGymCustomer(customer);
         for(GymBooking booking : customerBookings) {
-            if(booking.getGymWorkout().equals(workout)) {
+            if(booking.getGymWorkout().getGymWorkoutId().equals(workout.getGymWorkoutId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked this workout");
             }
         }
 
         List<GymBooking> workoutBookings = gymBookingRepository.findAllByIsActiveTrueAndGymWorkout(workout);
-        System.out.println("Number of active gym bookings '"+workoutBookings.size()+"' on workout with name: "+workout.getName());
 
         if(workout.getMaxParticipants() <= workoutBookings.size()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Maximum number of participants exceeded");
@@ -87,12 +86,13 @@ public class GymBookingServiceImpl implements GymBookingService {
     }
 
     @Override
-    public String cancelBookingOnWorkout(String username,Authentication authentication, Long bookingId) {
-        GymCustomer customer = findCustomer(username);
+    public String cancelBookingOnWorkout(Authentication authentication, Long bookingId) {
+        GymCustomer customer = findCustomer(authentication.getName());
         GymBooking booking = findBooking(bookingId);
+        GymWorkout workout = findWorkout(booking.getGymWorkout().getGymWorkoutId());
 
-        if(!booking.getGymCustomer().getUsername().equals(username)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"You are not allowed to cancel this booking. Customer id mismatch");
+        if(!booking.getGymCustomer().getUsername().equals(authentication.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"You are not allowed to cancel this booking. Customer username mismatch");
         }
 
         LocalDateTime today = LocalDateTime.now();
@@ -102,13 +102,10 @@ public class GymBookingServiceImpl implements GymBookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Too late to cancel. Cancellation must be at least 24 hours before the workout will take place");
         }
 
-        GymWorkout workout = findWorkout(booking.getGymWorkout().getGymWorkoutId());
-
         booking.setActive(false);
 
         gymBookingRepository.save(booking);
         gymCustomerRepository.save(customer);
-        gymWorkoutRepository.save(workout);
 
         CHANGES_IN_DB_LOGGER.info("{} {} canceled booking '{}', a {} workout with {}",
                 authentication.getAuthorities(),
@@ -121,11 +118,11 @@ public class GymBookingServiceImpl implements GymBookingService {
     }
 
     @Override
-    public List<DTOGymBooking> getGymBookings(String username) {
+    public List<DTOGymBooking> getUserGymBookings(String username) {
 
         GymCustomer customer = findCustomer(username);
 
-        List<GymBooking> bookings = gymBookingRepository.findAllByIsActiveTrueAndGymCustomer(customer);
+        List<GymBooking> bookings = gymBookingRepository.findAllByGymCustomer(customer);
         if(bookings.isEmpty()){
             throw new ContentNotFoundException("gym bookings");
         }
@@ -158,8 +155,6 @@ public class GymBookingServiceImpl implements GymBookingService {
         for(GymBooking booking : activeBookings){
             if(booking.getGymWorkout().getDateTime().isAfter(LocalDateTime.now())){
                 bookingsUpComing.add(booking);
-            } else if (booking.getGymWorkout().getDateTime().isEqual(LocalDateTime.now())) {
-                bookingsUpComing.add(booking);
             }
         }
 
@@ -172,16 +167,15 @@ public class GymBookingServiceImpl implements GymBookingService {
 
     @Override
     public List<DTOGymBooking> historicalGymBookings() {
-        List<GymBooking> pastBookings = new ArrayList<>();
-
-        List<GymBooking> allBookings = gymBookingRepository.findAll();
-        if(allBookings.isEmpty()){
-            throw new ContentNotFoundException("gym bookings");
+        List<GymWorkout> pastWorkouts = gymWorkoutRepository.findAllByDateTimeBefore(LocalDateTime.now());
+        if(pastWorkouts.isEmpty()){
+            throw new ContentNotFoundException("past gym workouts");
         }
-        for(GymBooking booking : allBookings){
-            if(booking.getGymWorkout().getDateTime().isBefore(LocalDateTime.now())){
-                pastBookings.add(booking);
-            }
+
+        List<GymBooking> pastBookings = new ArrayList<>();
+        for(GymWorkout workout : pastWorkouts){
+            List<GymBooking> pastActiveBookings = gymBookingRepository.findAllByIsActiveTrueAndGymWorkout(workout);
+            pastBookings.addAll(pastActiveBookings);
         }
         if(pastBookings.isEmpty()){
             throw new ContentNotFoundException("past gym bookings");
@@ -200,10 +194,6 @@ public class GymBookingServiceImpl implements GymBookingService {
             dtoGymBookings.add(dtoConverterBooking(booking));
         }
 
-        if(dtoGymBookings.isEmpty()){
-            throw new ContentNotFoundException("dto gym bookings");
-        }
-
         return dtoGymBookings;
     }
 
@@ -220,15 +210,6 @@ public class GymBookingServiceImpl implements GymBookingService {
                 booking.isActive()
         );
         return dtoGymBooking;
-    }
-
-    //TODO: remove?
-    private GymCustomer findCustomer(Long id){
-        Optional<GymCustomer> findCustomer = gymCustomerRepository.findById(id);
-        if(findCustomer.isEmpty()){
-            throw new ResourceNotFoundException("GymCustomer","id",id);
-        }
-        return findCustomer.get();
     }
 
     private GymCustomer findCustomer(String name){

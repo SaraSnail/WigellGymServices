@@ -7,19 +7,21 @@ import java.time.LocalDateTime;
 
 public class DTOGymWorkout {
     private String name;
-    private TrainingType trainingType;
+    private String trainingType;
     private int maxParticipants;
     private double price;
-    private int gymInstructorId;
+    private Long gymInstructorId;
     private LocalDateTime dateTime;
     private boolean isActive;
 
-    public DTOGymWorkout(String name, TrainingType trainingType, int maxParticipants, double price, int gymInstructorId, LocalDateTime dateTime, boolean isActive) {
+    public DTOGymWorkout() {
+    }
+
+    public DTOGymWorkout(String name, String trainingType, int maxParticipants, double price, LocalDateTime dateTime, boolean isActive) {
         this.name = name;
         this.trainingType = trainingType;
         this.maxParticipants = maxParticipants;
         this.price = price;
-        this.gymInstructorId = gymInstructorId;
         this.dateTime = dateTime;
         this.isActive = isActive;
     }
@@ -32,11 +34,11 @@ public class DTOGymWorkout {
         this.name = name;
     }
 
-    public TrainingType getTrainingType() {
+    public String getTrainingType() {
         return trainingType;
     }
 
-    public void setTrainingType(TrainingType trainingType) {
+    public void setTrainingType(String trainingType) {
         this.trainingType = trainingType;
     }
 
@@ -56,11 +58,11 @@ public class DTOGymWorkout {
         this.price = price;
     }
 
-    public int getGymInstructorId() {
+    public Long getGymInstructorId() {
         return gymInstructorId;
     }
 
-    public void setGymInstructorId(int gymInstructorId) {
+    public void setGymInstructorId(Long gymInstructorId) {
         this.gymInstructorId = gymInstructorId;
     }
 

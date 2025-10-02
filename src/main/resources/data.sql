@@ -1,6 +1,7 @@
 INSERT INTO gym_instructor(gym_instructor_name,gym_instructor_specialty,gym_instructor_is_active) VALUES
 ('Erik Quill','DANCE',true),
-('Mia Sundsvall','STRENGTH',true);
+('Mia Sundsvall','STRENGTH',true),
+('Will Stenhagen','YOGA',false);
 
 INSERT INTO gym_workout(gym_workout_name,gym_workout_traning_type,gym_workout_max_participants,gym_workout_price,gym_instructor_gym_instructor_id,gym_workout_date_time, gym_workout_is_active) VALUES
     ('Tyngdlyft - 1','STRENGTH',8,220.0,2,'2025-09-20 11:15:00.00',true),

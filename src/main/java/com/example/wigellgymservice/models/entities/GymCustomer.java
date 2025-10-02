@@ -31,7 +31,13 @@ public class GymCustomer {
         this.isActive = isActive;
     }
 
-    public GymCustomer(String username, List<GymBooking> gymBookings,boolean isActive) {
+    public GymCustomer(Long gymCustomerId, String username, boolean isActive) {
+        this.gymCustomerId = gymCustomerId;
+        this.username = username;
+        this.isActive = isActive;
+    }
+
+    public GymCustomer(String username, List<GymBooking> gymBookings, boolean isActive) {
         this.username = username;
         this.gymBookings = gymBookings;
         this.isActive = isActive;

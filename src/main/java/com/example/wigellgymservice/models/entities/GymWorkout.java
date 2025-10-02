@@ -1,10 +1,14 @@
 package com.example.wigellgymservice.models.entities;
 
 import com.example.wigellgymservice.enums.TrainingType;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "gym_workout")
 public class GymWorkout {
@@ -29,6 +33,11 @@ public class GymWorkout {
     @JoinColumn(name = "gym_instructor_gym_instructor_id",nullable = false)
     private GymInstructor gymInstructor;
 
+    @OneToMany(mappedBy = "gymWorkout")
+    private List<GymBooking> gymBookings = new ArrayList<>();
+
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Column(name = "gym_workout_date_time",nullable = false)
     private LocalDateTime dateTime;
 
@@ -79,6 +88,28 @@ public class GymWorkout {
         this.isActive = isActive;
     }
 
+    public GymWorkout(String name, TrainingType trainingType, int maxParticipants, double price, GymInstructor gymInstructor, List<GymBooking> gymBookings, LocalDateTime dateTime, boolean isActive) {
+        this.name = name;
+        this.trainingType = trainingType;
+        this.maxParticipants = maxParticipants;
+        this.price = price;
+        this.gymInstructor = gymInstructor;
+        this.gymBookings = gymBookings;
+        this.dateTime = dateTime;
+        this.isActive = isActive;
+    }
+
+    public GymWorkout(Long gymWorkoutId, String name, TrainingType trainingType, int maxParticipants, double price, GymInstructor gymInstructor, List<GymBooking> gymBookings, LocalDateTime dateTime, boolean isActive) {
+        this.gymWorkoutId = gymWorkoutId;
+        this.name = name;
+        this.trainingType = trainingType;
+        this.maxParticipants = maxParticipants;
+        this.price = price;
+        this.gymInstructor = gymInstructor;
+        this.gymBookings = gymBookings;
+        this.dateTime = dateTime;
+        this.isActive = isActive;
+    }
 
     public Long getGymWorkoutId() {
         return gymWorkoutId;
@@ -128,6 +159,15 @@ public class GymWorkout {
         this.gymInstructor = gymInstructor;
     }
 
+    @JsonIgnore
+    public List<GymBooking> getGymBookings() {
+        return gymBookings;
+    }
+
+    public void setGymBookings(List<GymBooking> gymBookings) {
+        this.gymBookings = gymBookings;
+    }
+
     public LocalDateTime getDateTime() {
         return dateTime;
     }
@@ -155,6 +195,7 @@ public class GymWorkout {
                 ", maxParticipants=" + maxParticipants +
                 ", price=" + price +
                 ", gymInstructor=" + gymInstructor +
+                ", gymBookings=" + gymBookings +
                 ", dateTime=" + dateTime +
                 ", isActive=" + isActive +
                 '}';

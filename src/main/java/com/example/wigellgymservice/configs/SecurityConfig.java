@@ -22,7 +22,8 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf->csrf.disable())
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults())
+                ;
 
         return http.build();
 

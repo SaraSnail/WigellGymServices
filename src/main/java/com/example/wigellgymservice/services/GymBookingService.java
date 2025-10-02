@@ -8,9 +8,9 @@ import java.util.List;
 public interface GymBookingService {
 
     //User
-    DTOGymBooking bookWorkout(String username, Authentication authentication, Long workoutId);
-    String cancelBookingOnWorkout(String username,Authentication authentication, Long bookingId);
-    List<DTOGymBooking> getGymBookings(String username);
+    DTOGymBooking bookWorkout(Authentication authentication, Long workoutId);
+    String cancelBookingOnWorkout(Authentication authentication, Long bookingId);
+    List<DTOGymBooking> getUserGymBookings(String username);
 
     //Admin
     List<DTOGymBooking> getCancelledGymBookings();

@@ -38,20 +38,20 @@ public class GymUserController {
     //• Boka träningspass POST /api/wigellgym/bookworkout
     //TODO: Should I have dateTime here or set it on something else?
     @PostMapping("/bookworkout/{workoutId}")
-    public ResponseEntity<DTOGymBooking> bookWorkOut(Principal principal, Authentication authentication, @PathVariable Long workoutId){
-        return new ResponseEntity<>(gymBookingService.bookWorkout(principal.getName(), authentication,workoutId), HttpStatus.CREATED);
+    public ResponseEntity<DTOGymBooking> bookWorkOut(Authentication authentication, @PathVariable Long workoutId){
+        return new ResponseEntity<>(gymBookingService.bookWorkout(authentication,workoutId), HttpStatus.CREATED);
     }
 
     //• Avboka träningspass PUT /api/wigellgym/cancelworkout (fram tills en dag innan avsatt datum)
     @PutMapping("/cancelworkout/{bookingId}")
-    public ResponseEntity<String> cancelBooking(Principal principal,Authentication authentication, @PathVariable Long bookingId) {
-        return ResponseEntity.ok(gymBookingService.cancelBookingOnWorkout(principal.getName(),authentication, bookingId));
+    public ResponseEntity<String> cancelBooking(Authentication authentication, @PathVariable Long bookingId) {
+        return ResponseEntity.ok(gymBookingService.cancelBookingOnWorkout(authentication, bookingId));
     }
 
     //• Se tidigare och aktiva bokningar GET /api/wigellgym/mybookings
     @GetMapping("/mybookings")
     public ResponseEntity<List<DTOGymBooking>> userBookings (Principal principal){
-        return ResponseEntity.ok(gymBookingService.getGymBookings(principal.getName()));
+        return ResponseEntity.ok(gymBookingService.getUserGymBookings(principal.getName()));
     }
 
 

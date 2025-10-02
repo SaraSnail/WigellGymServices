@@ -56,27 +56,28 @@ public class GymAdminController {
 
     //• Lägg till träningspass: POST /api/wigellgym/addworkout
     @PostMapping("/addworkout/{instructorId}")
-    public ResponseEntity<GymWorkout> addWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long instructorId, Principal principal, Authentication authentication) {
-        return new ResponseEntity<>(gymWorkoutService.addGymWorkout(dtoGymWorkout,instructorId, principal, authentication),HttpStatus.CREATED);
+    public ResponseEntity<GymWorkout> addWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long instructorId, Authentication authentication) {
+        return new ResponseEntity<>(gymWorkoutService.addGymWorkout(dtoGymWorkout,instructorId, authentication),HttpStatus.CREATED);
     }
 
     //• Uppdatera träningspass: PUT /api/wigellgym/updateworkout
-    @PutMapping("/updateworkout/{instructorId}")
-    public ResponseEntity<GymWorkout> updateWorkout(@RequestBody GymWorkout gymWorkout, @PathVariable Long instructorId, Principal principal, Authentication authentication) {
-        return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(gymWorkout, instructorId, principal, authentication));
+    @PutMapping("/updateworkout/{workoutId}/{instructorId}")
+    public ResponseEntity<GymWorkout> updateWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long workoutId, @PathVariable Long instructorId, Authentication authentication) {
+        System.out.println("------------------------1. In the endpoint ---------------------------------");
+        return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(dtoGymWorkout, workoutId, instructorId, authentication));
     }
 
     //TODO: not tested. Change to a Put and don't remove the workout
     //• Radera träningspass: DELETE /api/wigellgym/remworkout/{id}
     @PutMapping("/remworkout/{id}")
-    public ResponseEntity<String> removeWorkout(@PathVariable Long id,Principal principal, Authentication authentication) {
-        return ResponseEntity.ok(gymWorkoutService.removeGymWorkout(id,principal,authentication));
+    public ResponseEntity<String> removeWorkout(@PathVariable Long id,Authentication authentication) {
+        return ResponseEntity.ok(gymWorkoutService.removeGymWorkout(id,authentication));
     }
 
     //• Lägg till instruktör: POST /api/wigellgym/addinstructor
     @PostMapping("/addinstructor")
-    public ResponseEntity<GymInstructor> addInstructor(@RequestBody DTOGymInstructor dtoGymInstructor, Principal principal, Authentication authentication) {
-        return new ResponseEntity<>(gymInstructorService.addGymInstructor(dtoGymInstructor, principal, authentication), HttpStatus.CREATED);
+    public ResponseEntity<GymInstructor> addInstructor(@RequestBody DTOGymInstructor dtoGymInstructor, Authentication authentication) {
+        return new ResponseEntity<>(gymInstructorService.addGymInstructor(dtoGymInstructor, authentication), HttpStatus.CREATED);
     }
 
 

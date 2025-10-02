@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface GymInstructorService {
 
-    List<GymInstructor> getAllGymInstructors();
-    GymInstructor addGymInstructor(DTOGymInstructor dtoGymInstructor, Principal principal, Authentication authentication);
+    List<GymInstructor> getAllGymInstructors(Authentication authentication);
+    GymInstructor addGymInstructor(DTOGymInstructor dtoGymInstructor, Authentication authentication);
 }

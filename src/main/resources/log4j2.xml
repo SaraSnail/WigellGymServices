@@ -6,10 +6,10 @@
 %n
         </property>
         <property name="layout">
-═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 %style{%d{DATE}}{bright_yellow bg_black} %style{[%t]}{bold bright_magenta} ▬ %highlight{%-5level}{FATAL=white,ERROR=red,WARN=bright_yellow,INFO=underline bright_cyan,DEBUG=underline bright_green}▬ %style{%logger}{blue}
 %style{%m}{underline}
-═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 %n
         </property>
     </properties>
@@ -22,7 +22,7 @@
             <PatternLayout pattern="${layout}" disableAnsi="true"/>
         </File>
 
-        <File name="ChangesInDB" fileName="logs/changes-in-db.log">
+        <File name="ChangesInDB" fileName="logs/changesindb.log">
             <PatternLayout pattern="${layout}" disableAnsi="true"/>
         </File>
     </Appenders>

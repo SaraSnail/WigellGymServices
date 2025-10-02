@@ -11,10 +11,9 @@ import java.util.List;
 @Repository
 public interface GymBookingRepository extends JpaRepository<GymBooking, Long> {
 
-    List<GymBooking> findGymBookingsByGymWorkout(GymWorkout gymWorkoutId);
     List<GymBooking> findAllByIsActiveTrueAndGymWorkout(GymWorkout gymWorkout);
-
     List<GymBooking> findAllByIsActiveTrueAndGymCustomer(GymCustomer gymCustomer);
     List<GymBooking> findAllByIsActive(boolean isActive);
+    List<GymBooking> findAllByGymCustomer(GymCustomer gymCustomer);
 
 }

@@ -32,6 +32,14 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
     private final GymInstructorRepository gymInstructorRepository;
     private final GymBookingRepository gymBookingRepository;
 
+    private String newName = "";
+    private String newTrainingType = "";
+    private String newMaxParticipants = "";
+    private String newPrice = "";
+    private String newGymInstructorName = "";
+    private String newDateTime = "";
+    private String arrow = " -> ";
+
     private static final Logger CHANGES_IN_DB_LOGGER = LogManager.getLogger("changeindb");
 
     @Autowired
@@ -44,7 +52,7 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
     @Override
     public List<GymWorkout> getAllGymWorkouts() {
-        List<GymWorkout> allUpComingWorkouts = gymWorkoutRepository.findAllByDateTimeAfter(LocalDateTime.now());
+        List<GymWorkout> allUpComingWorkouts = gymWorkoutRepository.findAllByDateTimeAfterAndIsActiveTrue(LocalDateTime.now());
         if (allUpComingWorkouts.isEmpty()) {
             throw new ContentNotFoundException("upcoming gym workouts");
         }
@@ -58,8 +66,7 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
             }
         }
 
-
-        if (allUpComingWorkouts.isEmpty()) {
+        if (availableWorkouts.isEmpty()) {
             throw new ContentNotFoundException("upcoming available gym workouts");
         }
 
@@ -67,30 +74,30 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
     }
 
     @Override
-    public GymWorkout addGymWorkout(DTOGymWorkout dtoGymWorkout, Long instructorId, Principal principal, Authentication authentication) {
+    public GymWorkout addGymWorkout(DTOGymWorkout dtoGymWorkout, Long instructorId, Authentication authentication) {
 
+        notNull(dtoGymWorkout, instructorId);
         GymWorkout gymWorkout = dtoToGymWorkout(dtoGymWorkout, instructorId);
         validateGymWorkout(gymWorkout);
-
         checkIfInstructorBooked(gymWorkout, gymWorkout.getGymInstructor());
 
         gymWorkoutRepository.save(gymWorkout);
 
         CHANGES_IN_DB_LOGGER.info("{} {} added a {} workout on {} with instructor {}",
                 authentication.getAuthorities(),
-                principal.getName(),
+                authentication.getName(),
                 gymWorkout.getTrainingType(),
                 gymWorkout.getDateTime(),
                 gymWorkout.getGymInstructor().getGymInstructorName());
+
         return gymWorkout;
     }
 
     @Override
-    public GymWorkout updateGymWorkout(GymWorkout gymWorkout, Long instructorId, Principal principal, Authentication authentication) {
-
-        Optional<GymWorkout> findGymWorkout = gymWorkoutRepository.findById(gymWorkout.getGymWorkoutId());
+    public GymWorkout updateGymWorkout(DTOGymWorkout dtoGymWorkout, Long workoutId, Long instructorId, Authentication authentication) {
+        Optional<GymWorkout> findGymWorkout = gymWorkoutRepository.findById(workoutId);
         if(findGymWorkout.isEmpty()){
-            throw new ResourceNotFoundException("GymWorkout","id",gymWorkout.getGymWorkoutId());
+            throw new ResourceNotFoundException("GymWorkout","id",workoutId);
         }
 
         GymWorkout oldGymWorkout = findGymWorkout.get();
@@ -102,83 +109,142 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         GymInstructor gymInstructor = instructor.get();
 
-        validateGymWorkout(gymWorkout);
-        GymWorkout newGymWorkout = updateGymWorkout(gymWorkout, gymInstructor, oldGymWorkout.getGymWorkoutId());
-        checkIfInstructorBooked(gymWorkout, gymInstructor);
+        GymWorkout updatedWorkout = nullValues(dtoGymWorkout, oldGymWorkout);
 
-        gymWorkoutRepository.save(newGymWorkout);
+        validateGymWorkout(updatedWorkout);
+        checkIfInstructorBooked(updatedWorkout, gymInstructor);
+        updatedWorkout.setGymInstructor(gymInstructor);
 
-        String changes = "Changes: old -> new\n" +
-                "Name: " + oldGymWorkout.getName() +" -> "+ newGymWorkout.getName() +"\n" +
-                "Training Type: "+oldGymWorkout.getTrainingType().toString() + " -> "+ newGymWorkout.getTrainingType().toString() + "\n" +
-                "Max Participants: "+oldGymWorkout.getMaxParticipants() +" -> "+newGymWorkout.getMaxParticipants() + "\n" +
-                "Price sek: "+oldGymWorkout.getPrice() + " -> "+newGymWorkout.getPrice() + "\n" +
-                "Gym instructor name: "+oldGymWorkout.getGymInstructor().getGymInstructorName() + " -> " +newGymWorkout.getGymInstructor().getGymInstructorName() +"\n" +
-                "Date time: "+oldGymWorkout.getDateTime() + " -> "+newGymWorkout.getDateTime() + "\n" +
-                "Is active: "+oldGymWorkout.isActive() + " -> "+newGymWorkout.isActive();
+        String changes = "Changes: original -> change\n" +
+                "Name: " + oldGymWorkout.getName() +newName +"\n" +
+                "Training Type: "+oldGymWorkout.getTrainingType().toString() + newTrainingType+ "\n" +
+                "Max Participants: "+oldGymWorkout.getMaxParticipants() +newMaxParticipants + "\n" +
+                "Price sek: "+oldGymWorkout.getPrice() + newPrice + "\n" +
+                "Gym instructor name: "+oldGymWorkout.getGymInstructor().getGymInstructorName() + newGymInstructorName +"\n" +
+                "Date time: "+oldGymWorkout.getDateTime() + newDateTime+ "\n" +
+                "Is active: "+oldGymWorkout.isActive() + " -> "+updatedWorkout.isActive();
 
-        //TODO: might add so logger also saves what was updated
+
         CHANGES_IN_DB_LOGGER.info("{} {} updated workout with id '{}'. \n{}",
                 authentication.getAuthorities(),
-                principal.getName(),
-                newGymWorkout.getGymWorkoutId(),
+                authentication.getName(),
+                workoutId,
                 changes);
 
-        return newGymWorkout;
+        gymWorkoutRepository.save(updatedWorkout);
+
+        return updatedWorkout;
     }
 
 
 
     @Override
-    public String removeGymWorkout(Long id, Principal principal, Authentication authentication) {
+    public String removeGymWorkout(Long id, Authentication authentication) {
         Optional<GymWorkout>findGymWorkout = gymWorkoutRepository.findById(id);
         if(findGymWorkout.isEmpty()){
             throw new ResourceNotFoundException("GymWorkout","id",id);
         }
 
         GymWorkout gymWorkout = findGymWorkout.get();
-        List<GymBooking> bookings = gymBookingRepository.findGymBookingsByGymWorkout(gymWorkout);
-
-        if(!bookings.isEmpty()){
-            for(GymBooking booking : bookings){
-                booking.setActive(false);
-            }
+        List<GymBooking> bookingsSetToInactive = new ArrayList<>();
+        String pl = "";
+        if(gymWorkout.getGymBookings().size()>1){
+            pl = "s";
         }
+        String bookingsAffected = "Workout had '"+gymWorkout.getGymBookings().size()+"' booking"+pl;
+
+
+        if(gymWorkout.getDateTime().isAfter(LocalDateTime.now())){
+            for(GymBooking gymBooking : gymWorkout.getGymBookings()){
+
+
+                if(gymBooking.isActive()){
+                    bookingsSetToInactive.add(gymBooking);
+                    gymBooking.setActive(false);
+                }
+            }
+            if(bookingsSetToInactive.size() <2){
+                pl = "";
+            }
+            bookingsAffected = bookingsAffected +".\n '"+bookingsSetToInactive.size()+ "' booking"+pl+" set to inactive";
+        }
+
 
         gymWorkout.setActive(false);
 
         gymWorkoutRepository.save(gymWorkout);
-        gymBookingRepository.saveAll(bookings);
+        gymBookingRepository.saveAll(gymWorkout.getGymBookings());
 
-        CHANGES_IN_DB_LOGGER.info("{} {} removed (set to inactive) workout with id '{}'",
+        CHANGES_IN_DB_LOGGER.info("{} {} removed (set to inactive) workout with id '{}'. {}",
                 authentication.getAuthorities(),
-                principal.getName(),
-                gymWorkout.getGymWorkoutId());
-        return "Gym workout has been set to inactive.\n"+ gymWorkout;
+                authentication.getName(),
+                gymWorkout.getGymWorkoutId(),
+                bookingsAffected);
+
+        return "Gym workout has been set to inactive. "+bookingsAffected;
+    }
+
+    private void notNull(DTOGymWorkout dtoGymWorkout, Long instructorId){
+        if(instructorId == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"InstructorId cannot be null");
+        }
+        if(dtoGymWorkout.getName() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymWorkout name cannot be null");
+        }
+        if(dtoGymWorkout.getTrainingType() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymWorkout trainingType cannot be null");
+        }
+        if(dtoGymWorkout.getMaxParticipants() == 0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymWorkout maxParticipants cannot be zero");
+        }
+        if(dtoGymWorkout.getPrice() == 0.0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymWorkout price cannot be zero");
+        }
+        if(dtoGymWorkout.getDateTime() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymWorkout datetime cannot be null");
+        }
+    }
+
+    private GymWorkout nullValues(DTOGymWorkout dtoGymWorkout, GymWorkout gymWorkout){
+        if(dtoGymWorkout.getName() != null){
+            gymWorkout.setName(dtoGymWorkout.getName());
+            newName = arrow +dtoGymWorkout.getName();
+        }
+        if(dtoGymWorkout.getTrainingType() != null){
+            gymWorkout.setTrainingType(Util.getTrainingType(dtoGymWorkout.getTrainingType()));
+            newTrainingType = arrow +dtoGymWorkout.getTrainingType();
+        }
+        if(dtoGymWorkout.getMaxParticipants() != 0){
+            gymWorkout.setMaxParticipants(dtoGymWorkout.getMaxParticipants());
+            newMaxParticipants = arrow +dtoGymWorkout.getMaxParticipants();
+        }
+        if(dtoGymWorkout.getPrice() != 0.0){
+            gymWorkout.setPrice(dtoGymWorkout.getPrice());
+            newPrice = arrow +dtoGymWorkout.getPrice();
+        }
+        if(dtoGymWorkout.getDateTime() != null){
+            gymWorkout.setDateTime(dtoGymWorkout.getDateTime());
+            newDateTime = arrow +dtoGymWorkout.getDateTime().toString();
+        }
+
+        return gymWorkout;
     }
 
     private void validateGymWorkout(GymWorkout gymWorkout) {
-        if(gymWorkout.getName() == null || gymWorkout.getName().isBlank() || gymWorkout.getName().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout name");
+        if(gymWorkout.getName().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Empty gym workout name");
+        }
+
+        if(gymWorkout.getName().length() < 3){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"To short workout name, has to be at least 3 characters");
         }
 
         if(gymWorkout.getMaxParticipants() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout max participants");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"To low gym workout max participants, it has to be 1 or more");
         }
 
-        if(gymWorkout.getPrice() < 10.0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"To low gym workout price, it has to be more than 10.0");
-        }
-
-        if(gymWorkout.getTrainingType() == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Empty gym workout training type");
-        }
-        if(!Util.validTrainingType(gymWorkout.getTrainingType().toString())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout training type");
-        }
-
-        if(gymWorkout.getDateTime() == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Empty gym workout datetime");
+        if(gymWorkout.getPrice() < 70.0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"To low gym workout price, it has to be more than 70.0");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -186,14 +252,12 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
         if(gymWorkout.getDateTime().isBefore(now)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout date. Date/time already happened");
         }
-        if(gymWorkout.getDateTime().isEqual(now)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout date. Date/time is now and cannot be accepted");
-        }
 
         if(!now.isBefore(gymWorkout.getDateTime().minusMinutes(30))){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout date. Have to be at least 30 minutes after now");
         }
     }
+
 
     private GymWorkout dtoToGymWorkout(DTOGymWorkout dtoGymWorkout, Long instructorId){
         Optional<GymInstructor> findGymInstructor = gymInstructorRepository.findById(instructorId);
@@ -206,47 +270,40 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
         gymWorkout.setName(dtoGymWorkout.getName());
         gymWorkout.setMaxParticipants(dtoGymWorkout.getMaxParticipants());
         gymWorkout.setPrice(dtoGymWorkout.getPrice());
-        gymWorkout.setTrainingType(dtoGymWorkout.getTrainingType());
+        gymWorkout.setTrainingType(Util.getTrainingType(dtoGymWorkout.getTrainingType()));
         gymWorkout.setDateTime(dtoGymWorkout.getDateTime());
         gymWorkout.setGymInstructor(gymInstructor);
 
         return gymWorkout;
     }
 
-    private GymWorkout updateGymWorkout(GymWorkout gymWorkout, GymInstructor gymInstructor, Long id) {
-        GymWorkout newGymWorkout = new GymWorkout();
 
-        newGymWorkout.setGymWorkoutId(id);
-        newGymWorkout.setName(gymWorkout.getName());
-        newGymWorkout.setMaxParticipants(gymWorkout.getMaxParticipants());
-        newGymWorkout.setPrice(gymWorkout.getPrice());
-        newGymWorkout.setTrainingType(gymWorkout.getTrainingType());
-        newGymWorkout.setGymInstructor(gymInstructor);
-        newGymWorkout.setDateTime(gymWorkout.getDateTime());
-        newGymWorkout.setActive(gymWorkout.isActive());
-        return newGymWorkout;
-    }
 
     private void checkIfInstructorBooked(GymWorkout newGymWorkout, GymInstructor gymInstructor) {
+        if(!gymInstructor.isActive()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"GymInstructor with id '"+gymInstructor.getGymInstructorId()+"' is not active");
+        }
+
         List<GymWorkout> workoutsWithGivenInstructor = gymWorkoutRepository.findAllByGymInstructorAndIsActiveTrue(gymInstructor);
-        System.out.println("active workouts with that instructor: \n" + workoutsWithGivenInstructor);
 
         LocalDateTime newStart = newGymWorkout.getDateTime();
 
         for(GymWorkout existingWorkout : workoutsWithGivenInstructor){
+            if(existingWorkout == newGymWorkout){
+                continue;
+            }
             LocalDateTime existingStart = existingWorkout.getDateTime();
 
+            //Gets the amount of minutes between the times, ex 30 if newStart is 30min after or -30 if newStart is 30min before existingStart
             long minutesBetween = Duration.between(existingStart, newStart).toMinutes();
-            long absMinutesBetween = Math.abs(minutesBetween);
+            long absMinutesBetween = Math.abs(minutesBetween);//Saves the minutes as hole numbers, ex 30=30 or -30=30
 
             if(absMinutesBetween < 75){
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
-                        "Instructor is already booked around "+existingStart + "." +
-                                " Bookings must be at least 75 minutes apart"
+                        "Instructor is already booked around "+existingStart +". Bookings must be at least 1 hour and 15 minutes (75 minutes) apart"
                 );
             }
         }
-        System.out.println("Instructor is available for new workout");
     }
 }

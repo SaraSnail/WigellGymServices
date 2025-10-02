@@ -6,7 +6,7 @@ docker rm wigell-gym-service-container
 echo Deleting image wigell-gym-service-image
 docker rmi wigell-gym-service-image
 echo Running mvn package
-call mvn package -DskipTests
+call mvn package
 echo Creating image wigell-gym-service-image
 docker build -t wigell-gym-service-image .
 echo Creating and running container wigell-gym-service-container

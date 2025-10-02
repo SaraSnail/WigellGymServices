@@ -30,48 +30,57 @@ public class GymInstructorServiceImpl implements GymInstructorService {
     }
 
 
-
     @Override
-    public List<GymInstructor> getAllGymInstructors() {
-        List<GymInstructor> gymInstructors = gymInstructorRepository.findAll();
+    public List<GymInstructor> getAllGymInstructors(Authentication authentication) {
+        List<GymInstructor> gymInstructors;
+
+        if(authentication.getAuthorities().toString().equals("[ROLE_ADMIN]")) {
+            gymInstructors = gymInstructorRepository.findAll();
+        } else {
+            gymInstructors = gymInstructorRepository.findAllByIsActiveTrue();
+        }
+
         if (gymInstructors.isEmpty()) {
             throw new ContentNotFoundException("GymInstructor");
         }
         return gymInstructors;
     }
 
-
-    //TODO: should it return DTO here, it will not show the ID if DTO
     @Override
-    public GymInstructor addGymInstructor(DTOGymInstructor dtoGymInstructor, Principal principal, Authentication authentication) {
+    public GymInstructor addGymInstructor(DTOGymInstructor dtoGymInstructor, Authentication authentication) {
+        checkGymInstructor(dtoGymInstructor);
         GymInstructor gymInstructor = dtoToGymInstructor(dtoGymInstructor);
-        checkGymInstructor(gymInstructor);
 
         gymInstructorRepository.save(gymInstructor);
 
-        CHANGES_IN_DB_LOGGER.info("{} {} added a {} instructor with speciality in {}", authentication.getAuthorities(), principal.getName(), gymInstructor.getGymInstructorName(), gymInstructor.getTrainingType());
+        CHANGES_IN_DB_LOGGER.info("{} {} added instructor {} with speciality in {}",
+                authentication.getAuthorities(),
+                authentication.getName(),
+                gymInstructor.getGymInstructorName(),
+                gymInstructor.getTrainingType());
+
         return gymInstructor;
     }
 
     private GymInstructor dtoToGymInstructor(DTOGymInstructor dtoGymInstructor) {
         GymInstructor gymInstructor = new GymInstructor();
         gymInstructor.setGymInstructorName(dtoGymInstructor.getGymInstructorName());
-        gymInstructor.setTrainingType(dtoGymInstructor.getTrainingType());
+        gymInstructor.setTrainingType(Util.getTrainingType(dtoGymInstructor.getTrainingType()));
         gymInstructor.setActive(dtoGymInstructor.isActive());
         return gymInstructor;
     }
 
 
-    private void checkGymInstructor(GymInstructor gymInstructor) {
-        if(gymInstructor.getGymInstructorName() == null || gymInstructor.getGymInstructorName().isBlank()) {
+    private void checkGymInstructor(DTOGymInstructor dtoGymInstructor) {
+        if(dtoGymInstructor.getGymInstructorName() == null || dtoGymInstructor.getGymInstructorName().isBlank() || dtoGymInstructor.getGymInstructorName().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Gym Instructor name is empty");
         }
 
-        if(gymInstructor.getTrainingType() == null){
+        if(dtoGymInstructor.getTrainingType() == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is empty");
         }
 
-        if(!Util.validTrainingType(gymInstructor.getTrainingType().toString())){
+        if(!Util.validTrainingType(dtoGymInstructor.getTrainingType().toString())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is not valid");
         }
 

@@ -5,14 +5,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public class ContentNotFoundException extends RuntimeException {
-    private final String object;
+    private final String reason;
 
-    public ContentNotFoundException(String object) {
-        super(String.format("No %S found",object));
-        this.object = object;
+    public ContentNotFoundException(String reason) {
+        super(String.format("No %s found",reason));
+        this.reason = reason;
     }
 
-    public String getObject() {
-        return object;
+    public String getReason() {
+        return reason;
     }
 }
