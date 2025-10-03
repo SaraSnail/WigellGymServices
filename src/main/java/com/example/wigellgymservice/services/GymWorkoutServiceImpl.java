@@ -6,7 +6,7 @@ import com.example.wigellgymservice.models.DTO.DTOGymWorkout;
 import com.example.wigellgymservice.models.entities.GymBooking;
 import com.example.wigellgymservice.models.entities.GymInstructor;
 import com.example.wigellgymservice.models.entities.GymWorkout;
-import com.example.wigellgymservice.services.util.util.Util;
+import com.example.wigellgymservice.services.util.validateTrainingType;
 import com.example.wigellgymservice.repositories.GymBookingRepository;
 import com.example.wigellgymservice.repositories.GymInstructorRepository;
 import com.example.wigellgymservice.repositories.GymWorkoutRepository;
@@ -18,7 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -154,20 +153,23 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
         String bookingsAffected = "Workout had '"+gymWorkout.getGymBookings().size()+"' booking"+pl;
 
 
-        if(gymWorkout.getDateTime().isAfter(LocalDateTime.now())){
-            for(GymBooking gymBooking : gymWorkout.getGymBookings()){
+        if(gymWorkout.getGymBookings().size()>1){
+            if(gymWorkout.getDateTime().isAfter(LocalDateTime.now())){
+                for(GymBooking gymBooking : gymWorkout.getGymBookings()){
 
 
-                if(gymBooking.isActive()){
-                    bookingsSetToInactive.add(gymBooking);
-                    gymBooking.setActive(false);
+                    if(gymBooking.isActive()){
+                        bookingsSetToInactive.add(gymBooking);
+                        gymBooking.setActive(false);
+                    }
                 }
+                if(bookingsSetToInactive.size() <2){
+                    pl = "";
+                }
+                bookingsAffected = bookingsAffected +".\n '"+bookingsSetToInactive.size()+ "' booking"+pl+" set to inactive";
             }
-            if(bookingsSetToInactive.size() <2){
-                pl = "";
-            }
-            bookingsAffected = bookingsAffected +".\n '"+bookingsSetToInactive.size()+ "' booking"+pl+" set to inactive";
         }
+
 
 
         gymWorkout.setActive(false);
@@ -211,7 +213,7 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
             newName = arrow +dtoGymWorkout.getName();
         }
         if(dtoGymWorkout.getTrainingType() != null){
-            gymWorkout.setTrainingType(Util.getTrainingType(dtoGymWorkout.getTrainingType()));
+            gymWorkout.setTrainingType(validateTrainingType.getTrainingType(dtoGymWorkout.getTrainingType()));
             newTrainingType = arrow +dtoGymWorkout.getTrainingType();
         }
         if(dtoGymWorkout.getMaxParticipants() != 0){
@@ -270,9 +272,10 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
         gymWorkout.setName(dtoGymWorkout.getName());
         gymWorkout.setMaxParticipants(dtoGymWorkout.getMaxParticipants());
         gymWorkout.setPrice(dtoGymWorkout.getPrice());
-        gymWorkout.setTrainingType(Util.getTrainingType(dtoGymWorkout.getTrainingType()));
+        gymWorkout.setTrainingType(validateTrainingType.getTrainingType(dtoGymWorkout.getTrainingType()));
         gymWorkout.setDateTime(dtoGymWorkout.getDateTime());
         gymWorkout.setGymInstructor(gymInstructor);
+        gymWorkout.setActive(true);
 
         return gymWorkout;
     }

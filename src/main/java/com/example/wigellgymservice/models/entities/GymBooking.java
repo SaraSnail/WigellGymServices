@@ -57,19 +57,19 @@ public class GymBooking {
         this.gymBookingId = gymBookingId;
     }
 
-    public com.example.wigellgymservice.models.entities.GymCustomer getGymCustomer() {
+    public GymCustomer getGymCustomer() {
         return gymCustomer;
     }
 
-    public void setGymCustomer(com.example.wigellgymservice.models.entities.GymCustomer gymCustomer) {
+    public void setGymCustomer(GymCustomer gymCustomer) {
         this.gymCustomer = gymCustomer;
     }
 
-    public com.example.wigellgymservice.models.entities.GymWorkout getGymWorkout() {
+    public GymWorkout getGymWorkout() {
         return gymWorkout;
     }
 
-    public void setGymWorkout(com.example.wigellgymservice.models.entities.GymWorkout gymWorkout) {
+    public void setGymWorkout(GymWorkout gymWorkout) {
         this.gymWorkout = gymWorkout;
     }
 

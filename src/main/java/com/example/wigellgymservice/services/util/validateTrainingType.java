@@ -1,10 +1,10 @@
-package com.example.wigellgymservice.services.util.util;
+package com.example.wigellgymservice.services.util;
 
 import com.example.wigellgymservice.enums.TrainingType;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-public class Util {
+public class validateTrainingType {
 
     public static boolean validTrainingType(String type){
         try {

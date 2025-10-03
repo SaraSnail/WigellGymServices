@@ -9,7 +9,6 @@ import com.example.wigellgymservice.models.entities.GymWorkout;
 import com.example.wigellgymservice.repositories.GymBookingRepository;
 import com.example.wigellgymservice.repositories.GymCustomerRepository;
 import com.example.wigellgymservice.repositories.GymWorkoutRepository;
-import com.example.wigellgymservice.services.util.util.CurrencyConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +28,20 @@ public class GymBookingServiceImpl implements GymBookingService {
     private final GymBookingRepository gymBookingRepository;
     private final GymWorkoutRepository gymWorkoutRepository;
     private final GymCustomerRepository gymCustomerRepository;
+    private final CurrencyConverter currencyConverter;
 
     private double bookingFee = 40.0;
 
     private static final Logger CHANGES_IN_DB_LOGGER = LogManager.getLogger("changeindb");
 
     @Autowired
-    public GymBookingServiceImpl(GymBookingRepository gymBookingRepository, GymWorkoutRepository gymWorkoutRepository, GymCustomerRepository gymCustomerRepository) {
+    public GymBookingServiceImpl(GymBookingRepository gymBookingRepository, GymWorkoutRepository gymWorkoutRepository, GymCustomerRepository gymCustomerRepository, CurrencyConverter currencyConverter) {
         this.gymBookingRepository = gymBookingRepository;
         this.gymWorkoutRepository = gymWorkoutRepository;
         this.gymCustomerRepository = gymCustomerRepository;
+        this.currencyConverter = currencyConverter;
     }
+
 
 
     //User
@@ -47,6 +49,9 @@ public class GymBookingServiceImpl implements GymBookingService {
     public DTOGymBooking bookWorkout(Authentication authentication, Long workoutId) {
 
         GymCustomer customer = findCustomer(authentication.getName());
+        if(!customer.isActive()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer with username ["+customer.getUsername()+"] is not active");
+        }
         GymWorkout workout = findWorkout(workoutId);
 
         if(workout.getDateTime().isBefore(LocalDateTime.now())) {
@@ -198,8 +203,15 @@ public class GymBookingServiceImpl implements GymBookingService {
     }
 
     private DTOGymBooking dtoConverterBooking (GymBooking booking){
-        double priceEuro = CurrencyConverter.sekToEuroConverter(booking.getPrice());
+        if(booking.getPrice() < 40){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price sek cannot be less than 40 (the booking fee)");
+        }
 
+        double priceEuro = currencyConverter.sekToEuroConverter(booking.getPrice());
+
+        if(priceEuro == 0.0){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Currency conversion failed");
+        }
         DTOGymBooking dtoGymBooking = new DTOGymBooking(
                 booking.getGymBookingId(),
                 booking.getGymCustomer(),

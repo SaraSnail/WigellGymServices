@@ -1,6 +1,5 @@
 package com.example.wigellgymservice.models.DTO;
 
-import com.example.wigellgymservice.enums.TrainingType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DTOGymInstructor {

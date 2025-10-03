@@ -23,7 +23,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -45,8 +44,6 @@ class GymWorkoutServiceImplUnitTest {
 
     private List<GymWorkout> gymWorkouts;
     private List<GymBooking> gymBookings;
-    private List<GymInstructor> gymInstructors;
-    private List<GymCustomer> gymCustomers;
 
     private LocalDateTime now = LocalDateTime.now();
     private LocalDateTime oneDayAfterNow = LocalDateTime.now().plusDays(1);
@@ -79,8 +76,6 @@ class GymWorkoutServiceImplUnitTest {
     void setUp() {
         gymWorkouts = new ArrayList<>();
         gymBookings = new ArrayList<>();
-        gymInstructors = new ArrayList<>();
-        gymCustomers = new ArrayList<>();
 
         gymCustomer1 = new GymCustomer(1L, "mia", true);
         gymCustomer2 = new GymCustomer(2L, "helen", true);
@@ -121,7 +116,7 @@ class GymWorkoutServiceImplUnitTest {
     }
 
 
-    ///Done: getAllGymWorkouts()
+    ///getAllGymWorkouts ----------------------------------
     @Test
     void getAllGymWorkouts_ShouldReturnAllActiveAndAvailableGymWorkouts() {
         gymWorkouts.add(gymWorkout3);
@@ -182,7 +177,12 @@ class GymWorkoutServiceImplUnitTest {
     }
 
 
-    ///addGymWorkout
+
+
+
+
+
+    ///addGymWorkout -----------------------------
     @Test
     void addGymWorkout_ShouldAddGymWorkout() {
         when(gymInstructorRepository.findById(gymInstructor1.getGymInstructorId())).thenReturn(Optional.of(gymInstructor1));
@@ -490,7 +490,10 @@ class GymWorkoutServiceImplUnitTest {
 
 
 
-    ///updateGymWorkout
+
+
+
+    ///updateGymWorkout ----------------------------------------
     @Test
     void updateGymWorkout_ShouldUpdateWorkout(){
         when(gymWorkoutRepository.findById(gymWorkout3.getGymWorkoutId())).thenReturn(Optional.ofNullable(gymWorkout3));
@@ -789,22 +792,30 @@ class GymWorkoutServiceImplUnitTest {
     void updateGymWorkout_ShouldNotCompareTimeWithWorkoutToUpdate(){
         gymInstructor1.getGymWorkouts().add(gymWorkout3);
         gymWorkout3.setGymInstructor(gymInstructor1);
+
         when(gymWorkoutRepository.findById(gymWorkout3.getGymWorkoutId())).thenReturn(Optional.of(gymWorkout3));
         when(gymInstructorRepository.findById(gymInstructor1.getGymInstructorId())).thenReturn(Optional.of(gymInstructor1));
         when(gymWorkoutRepository.findAllByGymInstructorAndIsActiveTrue(gymInstructor1)).thenReturn(List.of(gymWorkout3));
 
-        GymWorkout updatedGymWorkout = gymWorkoutService.updateGymWorkout(
-                update,
-                gymWorkout3.getGymWorkoutId(),
-                gymInstructor1.getGymInstructorId(),
-                mockAuthentication
-        );
+        assertDoesNotThrow(()->{
+            GymWorkout updatedGymWorkout = gymWorkoutService.updateGymWorkout(
+                    update,
+                    gymWorkout3.getGymWorkoutId(),
+                    gymInstructor1.getGymInstructorId(),
+                    mockAuthentication
+            );
 
-        //TODO: maybe add a doesNotThrow?
+            assertNotNull(updatedGymWorkout);
+        });
+
     }
 
 
-    ///removeGymWorkout
+
+
+
+
+    ///removeGymWorkout -----------------------------------------------
     @Test
     void removeGymWorkout_ShouldSetWorkoutToInactive() {
         gymWorkout3.setDateTime(beforeNow);
@@ -823,7 +834,7 @@ class GymWorkoutServiceImplUnitTest {
     }
 
     @Test
-    void removeGymWorkout_ShouldSetWorkoutToInactiveAndShowNumberOfBookingsChanged() {
+    void removeGymWorkout_ShouldSetWorkoutToInactiveAndShowNumberOfBookingsChangedOneBooking() {
         gymBooking2.setGymWorkout(gymWorkout3);
         gymWorkout3.getGymBookings().add(gymBooking2);
         gymBooking3.setActive(false);
@@ -843,7 +854,7 @@ class GymWorkoutServiceImplUnitTest {
     }
 
     @Test
-    void removeGymWorkout_ShouldSetWorkoutToInactiveAndShowNumberOfBookingsChanged2() {
+    void removeGymWorkout_ShouldSetWorkoutToInactiveAndShowNumberOfBookingsChangedTwoBookings() {
         gymBooking2.setGymWorkout(gymWorkout3);
         gymWorkout3.getGymBookings().add(gymBooking2);
 
@@ -856,6 +867,27 @@ class GymWorkoutServiceImplUnitTest {
         assertEquals("Gym workout has been set to inactive. Workout had '2' bookings.\n '2' bookings set to inactive", result);
         assertEquals(gymBooking2.isActive(), false);
         assertEquals(gymBooking3.isActive(), false);
+
+        verify(gymWorkoutRepository).save(gymWorkout3);
+        verify(gymBookingRepository).saveAll(gymWorkout3.getGymBookings());
+        verify(mockAuthentication).getName();
+        verify(mockAuthentication).getAuthorities();
+    }
+
+    @Test
+    void removeGymWorkout_ShouldSetWorkoutToInactiveAndIfWorkoutAlreadyHappenedNotChangeTheBookings() {
+        gymWorkout3.setDateTime(beforeNow);
+        gymBooking2.setGymWorkout(gymWorkout3);
+        gymWorkout3.getGymBookings().add(gymBooking2);
+
+        when(gymWorkoutRepository.findById(gymWorkout3.getGymWorkoutId())).thenReturn(Optional.ofNullable(gymWorkout3));
+
+        String result = gymWorkoutService.removeGymWorkout(
+                gymWorkout3.getGymWorkoutId(),
+                mockAuthentication);
+
+        assertEquals("Gym workout has been set to inactive. Workout had '2' bookings", result);
+
 
         verify(gymWorkoutRepository).save(gymWorkout3);
         verify(gymBookingRepository).saveAll(gymWorkout3.getGymBookings());

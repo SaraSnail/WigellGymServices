@@ -1,6 +1,5 @@
 package com.example.wigellgymservice.repositories;
 
-import com.example.wigellgymservice.models.entities.GymBooking;
 import com.example.wigellgymservice.models.entities.GymInstructor;
 import com.example.wigellgymservice.models.entities.GymWorkout;
 import org.springframework.data.jpa.repository.JpaRepository;

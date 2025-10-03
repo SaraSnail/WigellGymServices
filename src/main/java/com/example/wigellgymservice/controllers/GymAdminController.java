@@ -15,7 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -63,7 +62,6 @@ public class GymAdminController {
     //• Uppdatera träningspass: PUT /api/wigellgym/updateworkout
     @PutMapping("/updateworkout/{workoutId}/{instructorId}")
     public ResponseEntity<GymWorkout> updateWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long workoutId, @PathVariable Long instructorId, Authentication authentication) {
-        System.out.println("------------------------1. In the endpoint ---------------------------------");
         return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(dtoGymWorkout, workoutId, instructorId, authentication));
     }
 

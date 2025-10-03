@@ -3,7 +3,7 @@ package com.example.wigellgymservice.services;
 import com.example.wigellgymservice.exceptions.ContentNotFoundException;
 import com.example.wigellgymservice.models.DTO.DTOGymInstructor;
 import com.example.wigellgymservice.models.entities.GymInstructor;
-import com.example.wigellgymservice.services.util.util.Util;
+import com.example.wigellgymservice.services.util.validateTrainingType;
 import com.example.wigellgymservice.repositories.GymInstructorRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.Principal;
 import java.util.List;
 
 @Service
@@ -65,7 +64,7 @@ public class GymInstructorServiceImpl implements GymInstructorService {
     private GymInstructor dtoToGymInstructor(DTOGymInstructor dtoGymInstructor) {
         GymInstructor gymInstructor = new GymInstructor();
         gymInstructor.setGymInstructorName(dtoGymInstructor.getGymInstructorName());
-        gymInstructor.setTrainingType(Util.getTrainingType(dtoGymInstructor.getTrainingType()));
+        gymInstructor.setTrainingType(validateTrainingType.getTrainingType(dtoGymInstructor.getTrainingType()));
         gymInstructor.setActive(dtoGymInstructor.isActive());
         return gymInstructor;
     }
@@ -80,7 +79,7 @@ public class GymInstructorServiceImpl implements GymInstructorService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is empty");
         }
 
-        if(!Util.validTrainingType(dtoGymInstructor.getTrainingType().toString())){
+        if(!validateTrainingType.validTrainingType(dtoGymInstructor.getTrainingType().toString())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is not valid");
         }
 
