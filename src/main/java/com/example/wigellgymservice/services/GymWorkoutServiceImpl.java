@@ -146,17 +146,18 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         GymWorkout gymWorkout = findGymWorkout.get();
         List<GymBooking> bookingsSetToInactive = new ArrayList<>();
+
         String pl = "";
-        if(gymWorkout.getGymBookings().size()>1){
+        if(gymWorkout.getGymBookings().size()!=1){
             pl = "s";
         }
         String bookingsAffected = "Workout had '"+gymWorkout.getGymBookings().size()+"' booking"+pl;
 
 
-        if(gymWorkout.getGymBookings().size()>1){
-            if(gymWorkout.getDateTime().isAfter(LocalDateTime.now())){
-                for(GymBooking gymBooking : gymWorkout.getGymBookings()){
 
+        if(gymWorkout.getDateTime().isAfter(LocalDateTime.now())){
+            if(!gymWorkout.getGymBookings().isEmpty()){
+                for(GymBooking gymBooking : gymWorkout.getGymBookings()){
 
                     if(gymBooking.isActive()){
                         bookingsSetToInactive.add(gymBooking);
@@ -168,7 +169,9 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
                 }
                 bookingsAffected = bookingsAffected +".\n '"+bookingsSetToInactive.size()+ "' booking"+pl+" set to inactive";
             }
+
         }
+
 
 
 

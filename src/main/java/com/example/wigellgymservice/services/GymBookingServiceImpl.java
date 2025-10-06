@@ -3,7 +3,6 @@ package com.example.wigellgymservice.services;
 import com.example.wigellgymservice.exceptions.ContentNotFoundException;
 import com.example.wigellgymservice.exceptions.ResourceNotFoundException;
 import com.example.wigellgymservice.services.externalAPI.CurrencyConverter;
-import com.example.wigellgymservice.services.externalAPI.CurrencyConverterImpl;
 import com.example.wigellgymservice.models.DTO.DTOGymBooking;
 import com.example.wigellgymservice.models.entities.GymBooking;
 import com.example.wigellgymservice.models.entities.GymCustomer;
@@ -19,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,9 +123,19 @@ public class GymBookingServiceImpl implements GymBookingService {
         }
 
         List<GymBooking> customerBookings = gymBookingRepository.findAllByIsActiveTrueAndGymCustomer(customer);
+        LocalDateTime workoutToBook = workout.getDateTime();
         for(GymBooking booking : customerBookings) {
+
             if(booking.getGymWorkout().getGymWorkoutId().equals(workout.getGymWorkoutId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked this workout");
+            }
+
+            LocalDateTime bookedWorkoutStart = booking.getGymWorkout().getDateTime();
+            long minutesBetween = Duration.between(bookedWorkoutStart, workoutToBook).toMinutes();
+            long absMinutesBetween = Math.abs(minutesBetween);
+
+            if(absMinutesBetween < 60) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked a workout at this time");
             }
         }
 

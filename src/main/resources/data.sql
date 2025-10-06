@@ -6,8 +6,10 @@ INSERT INTO gym_instructor(gym_instructor_name,gym_instructor_specialty,gym_inst
 INSERT INTO gym_workout(gym_workout_name,gym_workout_traning_type,gym_workout_max_participants,gym_workout_price,gym_instructor_gym_instructor_id,gym_workout_date_time, gym_workout_is_active) VALUES
     ('Tyngdlyft - 1','STRENGTH',8,220.0,2,'2025-09-20 11:15:00.00',true),
 ('Bugg - 1','DANCE',20,190.98,1,'2025-10-22 15:00:00.00',true),
-('Tyngdlyft - 2','STRENGTH',8,220.0,2,'2025-10-28 11:15:00.00',true),
-('Tyngdlyft - Solo','STRENGTH',1,440.0,2,'2025-10-28 15:15:00.00',true);
+('Tyngdlyft - 2','STRENGTH',8,220.0,2,'2025-10-22 11:15:00.00',true),
+('Tyngdlyft - Solo','STRENGTH',1,440.0,2,'2025-10-28 15:15:00.00',true),
+    ('Bugg - 2','DANCE',20,190.98,1,'2025-10-22 11:00:00.00',true);
+
 
 INSERT INTO gym_customer(gym_customer_name,gym_customer_is_active) VALUES
 ('sara',true),

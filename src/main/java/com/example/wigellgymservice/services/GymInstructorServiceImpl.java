@@ -65,7 +65,7 @@ public class GymInstructorServiceImpl implements GymInstructorService {
         GymInstructor gymInstructor = new GymInstructor();
         gymInstructor.setGymInstructorName(dtoGymInstructor.getGymInstructorName());
         gymInstructor.setTrainingType(validateTrainingType.getTrainingType(dtoGymInstructor.getTrainingType()));
-        gymInstructor.setActive(dtoGymInstructor.isActive());
+        gymInstructor.setActive(true);
         return gymInstructor;
     }
 

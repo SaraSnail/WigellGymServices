@@ -425,6 +425,11 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
     ///bookWorkout
     @Test
     void bookWorkout_ShouldReturnDTOBooking() throws Exception{
+        gymCustomer1.getGymBookings().remove(gymBooking1);
+        gymCustomer1.getGymBookings().remove(gymBooking2);
+        gymCustomer1.getGymBookings().remove(gymBooking3);
+        gymCustomerRepository.save(gymCustomer1);
+
         mockMvc.perform(post("/wigellgym/bookworkout/"+gymWorkout3.getGymWorkoutId())
                         .with(user("mia").roles("USER"))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -510,9 +515,40 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
                 .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked this workout\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
+    @Test
+    void bookWorkout_ShouldThrowIfCustomerHasAnotherWorkoutBookedWithinPlus60min() throws Exception {
+        gymWorkout1.setDateTime(aftereNow.plusMinutes(59));
+        gymWorkoutRepository.save(gymWorkout1);
+
+        mockMvc.perform(post("/wigellgym/bookworkout/"+gymWorkout3.getGymWorkoutId())
+                        .with(user("mia").roles("USER"))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    }
+
+    @Test
+    void bookWorkout_ShouldThrowIfCustomerHasAnotherWorkoutBookedWithinMinus60min() throws Exception {
+        gymWorkout1.setDateTime(aftereNow.minusMinutes(59));
+        gymWorkoutRepository.save(gymWorkout1);
+
+        mockMvc.perform(post("/wigellgym/bookworkout/"+gymWorkout3.getGymWorkoutId())
+                        .with(user("mia").roles("USER"))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    }
+
 
     @Test
     void bookWorkout_ShouldThrowIfWorkoutIsFullyBooked() throws Exception {
+        gymCustomer1.getGymBookings().remove(gymBooking1);
+        gymCustomer1.getGymBookings().remove(gymBooking2);
+        gymCustomer1.getGymBookings().remove(gymBooking3);
+        gymCustomerRepository.save(gymCustomer1);
+
         gymWorkout3.setMaxParticipants(1);
         gymWorkoutRepository.save(gymWorkout3);
 
