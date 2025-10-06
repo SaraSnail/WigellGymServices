@@ -1,6 +1,7 @@
 package com.example.wigellgymservice.controllers;
 
 import com.example.wigellgymservice.models.entities.GymInstructor;
+import com.example.wigellgymservice.services.GymInstructorService;
 import com.example.wigellgymservice.services.GymInstructorServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,10 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('USER','ADMIN')")
 public class GymSharedController {
 
-    private final GymInstructorServiceImpl gymInstructorService;
+    private final GymInstructorService gymInstructorService;
 
     @Autowired
-    public GymSharedController(GymInstructorServiceImpl gymInstructorService) {
+    public GymSharedController(GymInstructorService gymInstructorService) {
         this.gymInstructorService = gymInstructorService;
     }
 

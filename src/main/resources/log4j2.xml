@@ -7,8 +7,15 @@
         </property>
         <property name="layout">
 ═══════════════════════════════════════════════════════════════════════════════════════════════
-%style{%d{DATE}}{bright_yellow bg_black} %style{[%t]}{bold bright_magenta} ▬ %highlight{%-5level}{FATAL=white,ERROR=red,WARN=bright_yellow,INFO=underline bright_cyan,DEBUG=underline bright_green}▬ %style{%logger}{blue}
+%style{%d{DATE}}{bright_yellow} %style{[%t]}{bold bright_magenta} ▬ %highlight{%-5level}{FATAL=white,ERROR=red,WARN=bright_yellow,INFO=underline bright_cyan,DEBUG=underline bright_green}▬ %style{%logger}{blue}
 %style{%m}{underline}
+═══════════════════════════════════════════════════════════════════════════════════════════════
+%n
+        </property>
+        <property name="layoutbeach">
+═══════════════════════════════════════════════════════════════════════════════════════════════
+%style{%date{DATE}}{#f7a072} %style{✨%t✨}{#eddea4} ▬ %highlight{%-5level}{FATAL=bold bright_red,ERROR=bold bg_red #f9f7f3,WARN=#f7a072,INFO=#b5e2fa,DEBUG=#f9f7f3}▬ %style{%logger}{#0fa3b1}
+%style{֎}{#eddea4} %style{%m}{#f9f7f3}
 ═══════════════════════════════════════════════════════════════════════════════════════════════
 %n
         </property>
@@ -23,7 +30,7 @@
         </File>
 
         <File name="ChangesInDB" fileName="logs/changesindb.log">
-            <PatternLayout pattern="${layout}" disableAnsi="true"/>
+            <PatternLayout pattern="${layoutbeach}" disableAnsi="false"/>
         </File>
     </Appenders>
 

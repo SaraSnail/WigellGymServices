@@ -1,4 +1,4 @@
-package com.example.wigellgymservice.services;
+package com.example.wigellgymservice.services.externalAPI;
 
 import com.example.wigellgymservice.models.CurrencyConversionResponse;
 import org.springframework.http.HttpStatus;
@@ -7,8 +7,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
-public class CurrencyConverter {
+public class CurrencyConverterImpl implements CurrencyConverter {
 
+    @Override
     public double sekToEuroConverter(double sek) {
         try {
 

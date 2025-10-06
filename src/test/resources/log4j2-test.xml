@@ -1,0 +1,22 @@
+<configuration status="info">
+    <properties>
+        <property name="layouttest">
+═══════════════════════════════════════════════════════════════════════════════════════════════
+%style{%d{DATE}}{bright_yellow} %style{[%t]}{bold magenta} - %highlight{%-5level}{FATAL=white,ERROR=red,WARN=bright_yellow,INFO=underline bright_cyan,DEBUG=underline bright_green}- %style{%logger}{blue}
+%style{%m}{underline}
+═══════════════════════════════════════════════════════════════════════════════════════════════
+%n
+        </property>
+    </properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${layouttest}" disableAnsi="false" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</configuration>

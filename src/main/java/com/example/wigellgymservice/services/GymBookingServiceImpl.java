@@ -2,6 +2,8 @@ package com.example.wigellgymservice.services;
 
 import com.example.wigellgymservice.exceptions.ContentNotFoundException;
 import com.example.wigellgymservice.exceptions.ResourceNotFoundException;
+import com.example.wigellgymservice.services.externalAPI.CurrencyConverter;
+import com.example.wigellgymservice.services.externalAPI.CurrencyConverterImpl;
 import com.example.wigellgymservice.models.DTO.DTOGymBooking;
 import com.example.wigellgymservice.models.entities.GymBooking;
 import com.example.wigellgymservice.models.entities.GymCustomer;
@@ -42,16 +44,78 @@ public class GymBookingServiceImpl implements GymBookingService {
         this.currencyConverter = currencyConverter;
     }
 
+    //Admin
+    @Override
+    public List<DTOGymBooking> getCancelledGymBookings() {
+        List<GymBooking>cancelledBookings = gymBookingRepository.findAllByIsActive(false);
+        if(cancelledBookings.isEmpty()){
+            throw new ContentNotFoundException("cancelled gym bookings");
+        }
+
+        return getDtoGymBookings(cancelledBookings);
+    }
+
+
+    @Override
+    public List<DTOGymBooking> upComingGymBookings() {
+        List<GymBooking> activeBookings = gymBookingRepository.findAllByIsActive(true);
+        if(activeBookings.isEmpty()){
+            throw new ContentNotFoundException("active gym bookings");
+        }
+        List<GymBooking> bookingsUpComing = new ArrayList<>();
+        for(GymBooking booking : activeBookings){
+            if(booking.getGymWorkout().getDateTime().isAfter(LocalDateTime.now())){
+                bookingsUpComing.add(booking);
+            }
+        }
+
+        if(bookingsUpComing.isEmpty()){
+            throw new ContentNotFoundException("upcoming active gym bookings");
+        }
+
+        return getDtoGymBookings(bookingsUpComing);
+    }
+
+    @Override
+    public List<DTOGymBooking> pastGymBookings() {
+        List<GymWorkout> pastWorkouts = gymWorkoutRepository.findAllByDateTimeBefore(LocalDateTime.now());
+        if(pastWorkouts.isEmpty()){
+            throw new ContentNotFoundException("past gym workouts");
+        }
+
+        List<GymBooking> pastBookings = new ArrayList<>();
+        for(GymWorkout workout : pastWorkouts){
+            List<GymBooking> pastActiveBookings = gymBookingRepository.findAllByIsActiveTrueAndGymWorkout(workout);
+            pastBookings.addAll(pastActiveBookings);
+        }
+        if(pastBookings.isEmpty()){
+            throw new ContentNotFoundException("past gym bookings");
+        }
+
+        return getDtoGymBookings(pastBookings);
+    }
+
+
 
 
     //User
     @Override
+    public List<DTOGymBooking> getUserGymBookings(String username) {
+
+        GymCustomer customer = findCustomer(username);
+
+        List<GymBooking> bookings = gymBookingRepository.findAllByGymCustomer(customer);
+        if(bookings.isEmpty()){
+            throw new ContentNotFoundException("gym bookings");
+        }
+
+        return getDtoGymBookings(bookings);
+    }
+
+    @Override
     public DTOGymBooking bookWorkout(Authentication authentication, Long workoutId) {
 
         GymCustomer customer = findCustomer(authentication.getName());
-        if(!customer.isActive()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer with username ["+customer.getUsername()+"] is not active");
-        }
         GymWorkout workout = findWorkout(workoutId);
 
         if(workout.getDateTime().isBefore(LocalDateTime.now())) {
@@ -122,72 +186,8 @@ public class GymBookingServiceImpl implements GymBookingService {
         return "Booking successfully cancelled";
     }
 
-    @Override
-    public List<DTOGymBooking> getUserGymBookings(String username) {
-
-        GymCustomer customer = findCustomer(username);
-
-        List<GymBooking> bookings = gymBookingRepository.findAllByGymCustomer(customer);
-        if(bookings.isEmpty()){
-            throw new ContentNotFoundException("gym bookings");
-        }
-
-        return getDtoGymBookings(bookings);
-    }
 
 
-
-
-    //Admin
-    @Override
-    public List<DTOGymBooking> getCancelledGymBookings() {
-        List<GymBooking>cancelledBookings = gymBookingRepository.findAllByIsActive(false);
-        if(cancelledBookings.isEmpty()){
-            throw new ContentNotFoundException("cancelled gym bookings");
-        }
-
-        return getDtoGymBookings(cancelledBookings);
-    }
-
-
-    @Override
-    public List<DTOGymBooking> upComingGymBookings() {
-        List<GymBooking> activeBookings = gymBookingRepository.findAllByIsActive(true);
-        if(activeBookings.isEmpty()){
-            throw new ContentNotFoundException("active gym bookings");
-        }
-        List<GymBooking> bookingsUpComing = new ArrayList<>();
-        for(GymBooking booking : activeBookings){
-            if(booking.getGymWorkout().getDateTime().isAfter(LocalDateTime.now())){
-                bookingsUpComing.add(booking);
-            }
-        }
-
-        if(bookingsUpComing.isEmpty()){
-            throw new ContentNotFoundException("upcoming active gym bookings");
-        }
-
-        return getDtoGymBookings(bookingsUpComing);
-    }
-
-    @Override
-    public List<DTOGymBooking> historicalGymBookings() {
-        List<GymWorkout> pastWorkouts = gymWorkoutRepository.findAllByDateTimeBefore(LocalDateTime.now());
-        if(pastWorkouts.isEmpty()){
-            throw new ContentNotFoundException("past gym workouts");
-        }
-
-        List<GymBooking> pastBookings = new ArrayList<>();
-        for(GymWorkout workout : pastWorkouts){
-            List<GymBooking> pastActiveBookings = gymBookingRepository.findAllByIsActiveTrueAndGymWorkout(workout);
-            pastBookings.addAll(pastActiveBookings);
-        }
-        if(pastBookings.isEmpty()){
-            throw new ContentNotFoundException("past gym bookings");
-        }
-
-        return getDtoGymBookings(pastBookings);
-    }
 
 
 
@@ -229,7 +229,11 @@ public class GymBookingServiceImpl implements GymBookingService {
         if(findCustomer.isEmpty()){
             throw new ResourceNotFoundException("GymCustomer","username",name);
         }
-        return findCustomer.get();
+        GymCustomer customer = findCustomer.get();
+        if(!customer.isActive()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer with username ["+customer.getUsername()+"] is not active");
+        }
+        return customer;
     }
 
     private GymWorkout findWorkout(Long id){

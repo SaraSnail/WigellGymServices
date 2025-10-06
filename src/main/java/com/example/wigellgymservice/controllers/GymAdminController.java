@@ -5,9 +5,7 @@ import com.example.wigellgymservice.models.DTO.DTOGymInstructor;
 import com.example.wigellgymservice.models.DTO.DTOGymWorkout;
 import com.example.wigellgymservice.models.entities.GymInstructor;
 import com.example.wigellgymservice.models.entities.GymWorkout;
-import com.example.wigellgymservice.services.GymBookingServiceImpl;
-import com.example.wigellgymservice.services.GymInstructorServiceImpl;
-import com.example.wigellgymservice.services.GymWorkoutServiceImpl;
+import com.example.wigellgymservice.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +20,12 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class GymAdminController {
 
-    private final GymBookingServiceImpl gymBookingService;
-    private final GymInstructorServiceImpl gymInstructorService;
-    private final GymWorkoutServiceImpl gymWorkoutService;
+    private final GymBookingService gymBookingService;
+    private final GymInstructorService gymInstructorService;
+    private final GymWorkoutService gymWorkoutService;
 
     @Autowired
-    public GymAdminController(GymBookingServiceImpl gymBookingService, GymInstructorServiceImpl gymInstructorService, GymWorkoutServiceImpl gymWorkoutService) {
+    public GymAdminController(GymBookingService gymBookingService, GymInstructorService gymInstructorService, GymWorkoutService gymWorkoutService) {
         this.gymBookingService = gymBookingService;
         this.gymInstructorService = gymInstructorService;
         this.gymWorkoutService = gymWorkoutService;
@@ -49,7 +47,7 @@ public class GymAdminController {
     //• Lista historiska bokningar: GET /api/wigellgym/listpast
     @GetMapping("/listpast")
     public ResponseEntity<List<DTOGymBooking>> listPast() {
-        return ResponseEntity.ok(gymBookingService.historicalGymBookings());
+        return ResponseEntity.ok(gymBookingService.pastGymBookings());
     }
 
 
@@ -65,7 +63,6 @@ public class GymAdminController {
         return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(dtoGymWorkout, workoutId, instructorId, authentication));
     }
 
-    //TODO: not tested. Change to a Put and don't remove the workout
     //• Radera träningspass: DELETE /api/wigellgym/remworkout/{id}
     @PutMapping("/remworkout/{id}")
     public ResponseEntity<String> removeWorkout(@PathVariable Long id,Authentication authentication) {

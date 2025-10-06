@@ -15,5 +15,5 @@ public interface GymBookingService {
     //Admin
     List<DTOGymBooking> getCancelledGymBookings();
     List<DTOGymBooking> upComingGymBookings();
-    List<DTOGymBooking> historicalGymBookings();
+    List<DTOGymBooking> pastGymBookings();
 }

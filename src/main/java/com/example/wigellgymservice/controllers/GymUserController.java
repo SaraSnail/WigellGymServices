@@ -2,7 +2,9 @@ package com.example.wigellgymservice.controllers;
 
 import com.example.wigellgymservice.models.DTO.DTOGymBooking;
 import com.example.wigellgymservice.models.entities.GymWorkout;
+import com.example.wigellgymservice.services.GymBookingService;
 import com.example.wigellgymservice.services.GymBookingServiceImpl;
+import com.example.wigellgymservice.services.GymWorkoutService;
 import com.example.wigellgymservice.services.GymWorkoutServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,11 +21,11 @@ import java.util.List;
 @PreAuthorize("hasRole('USER')")
 public class GymUserController {
 
-    private GymBookingServiceImpl gymBookingService;
-    private GymWorkoutServiceImpl gymWorkoutService;
+    private GymBookingService gymBookingService;
+    private GymWorkoutService gymWorkoutService;
 
     @Autowired
-    public GymUserController(GymBookingServiceImpl gymBookingService,GymWorkoutServiceImpl gymWorkoutServiceImpl) {
+    public GymUserController(GymBookingService gymBookingService, GymWorkoutService gymWorkoutServiceImpl) {
         this.gymBookingService = gymBookingService;
         this.gymWorkoutService = gymWorkoutServiceImpl;
     }
@@ -36,7 +38,6 @@ public class GymUserController {
     }
 
     //• Boka träningspass POST /api/wigellgym/bookworkout
-    //TODO: Should I have dateTime here or set it on something else?
     @PostMapping("/bookworkout/{workoutId}")
     public ResponseEntity<DTOGymBooking> bookWorkOut(Authentication authentication, @PathVariable Long workoutId){
         return new ResponseEntity<>(gymBookingService.bookWorkout(authentication,workoutId), HttpStatus.CREATED);
