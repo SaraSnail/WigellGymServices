@@ -896,6 +896,25 @@ class GymWorkoutServiceImplUnitTest {
     }
 
     @Test
+    void removeGymWorkout_ShouldSkipSettingBookingsToFalseIfWorkoutHasNoBookings() {
+        GymWorkout workout = new GymWorkout(12L, "Spinn", TrainingType.COREFLEX, 10, 99.89,gymInstructor1,  aftereNow, true);
+
+        when(gymWorkoutRepository.findById(workout.getGymWorkoutId())).thenReturn(Optional.ofNullable(workout));
+
+        String result = gymWorkoutService.removeGymWorkout(
+                workout.getGymWorkoutId(),
+                mockAuthentication);
+
+        assertEquals("Gym workout has been set to inactive. Workout had '0' bookings", result);
+
+
+        verify(gymWorkoutRepository).save(workout);
+        verify(gymBookingRepository).saveAll(workout.getGymBookings());
+        verify(mockAuthentication).getName();
+        verify(mockAuthentication).getAuthorities();
+    }
+
+    @Test
     void removeGymWorkout_ShouldThrowIfGymWorkoutNotFound() {
         when(gymWorkoutRepository.findById(10L)).thenReturn(Optional.empty());
         ResourceNotFoundException resourceNotFoundException = assertThrows(
