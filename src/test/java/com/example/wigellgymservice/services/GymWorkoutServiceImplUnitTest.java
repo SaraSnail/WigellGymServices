@@ -845,7 +845,7 @@ class GymWorkoutServiceImplUnitTest {
                 mockAuthentication);
 
         assertEquals("Gym workout has been set to inactive. Workout had '2' bookings.\n '1' booking set to inactive", result);
-        assertEquals(gymBooking2.isActive(), false);
+        assertFalse(gymBooking2.isActive());
 
         verify(gymWorkoutRepository).save(gymWorkout3);
         verify(gymBookingRepository).saveAll(gymWorkout3.getGymBookings());
@@ -865,8 +865,8 @@ class GymWorkoutServiceImplUnitTest {
                 mockAuthentication);
 
         assertEquals("Gym workout has been set to inactive. Workout had '2' bookings.\n '2' bookings set to inactive", result);
-        assertEquals(gymBooking2.isActive(), false);
-        assertEquals(gymBooking3.isActive(), false);
+        assertFalse(gymBooking2.isActive());
+        assertFalse(gymBooking3.isActive());
 
         verify(gymWorkoutRepository).save(gymWorkout3);
         verify(gymBookingRepository).saveAll(gymWorkout3.getGymBookings());
@@ -899,7 +899,7 @@ class GymWorkoutServiceImplUnitTest {
     void removeGymWorkout_ShouldSkipSettingBookingsToFalseIfWorkoutHasNoBookings() {
         GymWorkout workout = new GymWorkout(12L, "Spinn", TrainingType.COREFLEX, 10, 99.89,gymInstructor1,  aftereNow, true);
 
-        when(gymWorkoutRepository.findById(workout.getGymWorkoutId())).thenReturn(Optional.ofNullable(workout));
+        when(gymWorkoutRepository.findById(workout.getGymWorkoutId())).thenReturn(Optional.of(workout));
 
         String result = gymWorkoutService.removeGymWorkout(
                 workout.getGymWorkoutId(),
