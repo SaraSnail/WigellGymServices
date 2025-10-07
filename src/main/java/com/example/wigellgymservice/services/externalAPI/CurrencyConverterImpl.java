@@ -13,7 +13,7 @@ public class CurrencyConverterImpl implements CurrencyConverter {
     public double sekToEuroConverter(double sek) {
         try {
 
-            String uri = "https://v1.apiplugin.io/v1/currency/MikSPFWu/convert?amount=" + sek + "&from=SEK&to=EUR";
+            String uri = "https://v1.apiplugin.io/v1/currency/mki37XKl/convert?amount=" + sek + "&from=SEK&to=EUR";
             RestTemplate restTemplate = new RestTemplate();
 
             CurrencyConversionResponse response = restTemplate.getForObject(uri, CurrencyConversionResponse.class);

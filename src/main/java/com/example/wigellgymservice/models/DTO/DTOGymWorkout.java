@@ -13,9 +13,6 @@ public class DTOGymWorkout {
     private LocalDateTime dateTime;
     private boolean isActive;
 
-    public DTOGymWorkout() {
-    }
-
     public DTOGymWorkout(String name, String trainingType, int maxParticipants, double price, LocalDateTime dateTime, boolean isActive) {
         this.name = name;
         this.trainingType = trainingType;

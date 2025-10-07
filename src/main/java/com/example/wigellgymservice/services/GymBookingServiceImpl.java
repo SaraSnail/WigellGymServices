@@ -44,7 +44,7 @@ public class GymBookingServiceImpl implements GymBookingService {
         this.currencyConverter = currencyConverter;
     }
 
-    //Admin
+    ///Admin
     @Override
     public List<DTOGymBooking> getCancelledGymBookings() {
         List<GymBooking>cancelledBookings = gymBookingRepository.findAllByIsActive(false);
@@ -98,7 +98,7 @@ public class GymBookingServiceImpl implements GymBookingService {
 
 
 
-    //User
+    ///User
     @Override
     public List<DTOGymBooking> getUserGymBookings(String username) {
 
@@ -118,14 +118,18 @@ public class GymBookingServiceImpl implements GymBookingService {
         GymCustomer customer = findCustomer(authentication.getName());
         GymWorkout workout = findWorkout(workoutId);
 
+        if(!workout.isActive()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Workout is not active");
+        }
+
         if(workout.getDateTime().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Workout has already happened/started");
         }
 
         List<GymBooking> customerBookings = gymBookingRepository.findAllByIsActiveTrueAndGymCustomer(customer);
         LocalDateTime workoutToBook = workout.getDateTime();
-        for(GymBooking booking : customerBookings) {
 
+        for(GymBooking booking : customerBookings) {
             if(booking.getGymWorkout().getGymWorkoutId().equals(workout.getGymWorkoutId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked this workout");
             }
@@ -134,9 +138,10 @@ public class GymBookingServiceImpl implements GymBookingService {
             long minutesBetween = Duration.between(bookedWorkoutStart, workoutToBook).toMinutes();
             long absMinutesBetween = Math.abs(minutesBetween);
 
-            if(absMinutesBetween < 60) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked a workout at this time");
+            if (absMinutesBetween < 60) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already booked a workout at this time. Each workout is 60min");
             }
+
         }
 
         List<GymBooking> workoutBookings = gymBookingRepository.findAllByIsActiveTrueAndGymWorkout(workout);
@@ -220,9 +225,9 @@ public class GymBookingServiceImpl implements GymBookingService {
         double priceEuro = currencyConverter.sekToEuroConverter(booking.getPrice());
 
         if(priceEuro == 0.0){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Currency conversion failed");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Currency conversion failed. \nSek: "+booking.getPrice());
         }
-        DTOGymBooking dtoGymBooking = new DTOGymBooking(
+        return new DTOGymBooking(
                 booking.getGymBookingId(),
                 booking.getGymCustomer(),
                 booking.getGymWorkout(),
@@ -231,7 +236,6 @@ public class GymBookingServiceImpl implements GymBookingService {
                 priceEuro,
                 booking.isActive()
         );
-        return dtoGymBooking;
     }
 
     private GymCustomer findCustomer(String name){

@@ -31,28 +31,24 @@ public class GymUserController {
     }
 
 
-    //• Lista träningspass GET /api/wigellgym/workouts
     @GetMapping("/workouts")
     public ResponseEntity<List<GymWorkout>> getAllWorkouts(){
         return ResponseEntity.ok(gymWorkoutService.getAllGymWorkouts());
     }
 
-    //• Boka träningspass POST /api/wigellgym/bookworkout
+    @GetMapping("/mybookings")
+    public ResponseEntity<List<DTOGymBooking>> userBookings (Principal principal){
+        return ResponseEntity.ok(gymBookingService.getUserGymBookings(principal.getName()));
+    }
+
     @PostMapping("/bookworkout/{workoutId}")
     public ResponseEntity<DTOGymBooking> bookWorkOut(Authentication authentication, @PathVariable Long workoutId){
         return new ResponseEntity<>(gymBookingService.bookWorkout(authentication,workoutId), HttpStatus.CREATED);
     }
 
-    //• Avboka träningspass PUT /api/wigellgym/cancelworkout (fram tills en dag innan avsatt datum)
     @PutMapping("/cancelworkout/{bookingId}")
     public ResponseEntity<String> cancelBooking(Authentication authentication, @PathVariable Long bookingId) {
         return ResponseEntity.ok(gymBookingService.cancelBookingOnWorkout(authentication, bookingId));
-    }
-
-    //• Se tidigare och aktiva bokningar GET /api/wigellgym/mybookings
-    @GetMapping("/mybookings")
-    public ResponseEntity<List<DTOGymBooking>> userBookings (Principal principal){
-        return ResponseEntity.ok(gymBookingService.getUserGymBookings(principal.getName()));
     }
 
 

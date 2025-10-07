@@ -25,7 +25,6 @@ public class GymSharedController {
         this.gymInstructorService = gymInstructorService;
     }
 
-
     @GetMapping("/instructors")
     public ResponseEntity<List<GymInstructor>> getAllInstructors(Authentication authentication) {
         return ResponseEntity.ok(gymInstructorService.getAllGymInstructors(authentication));

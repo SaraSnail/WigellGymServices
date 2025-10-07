@@ -573,7 +573,7 @@ class GymWorkoutServiceImplUnitTest {
         when(gymWorkoutRepository.findById(gymWorkout3.getGymWorkoutId())).thenReturn(Optional.of(gymWorkout3));
         when(gymInstructorRepository.findById(gymInstructor1.getGymInstructorId())).thenReturn(Optional.of(gymInstructor1));
 
-        DTOGymWorkout emptyGymWorkout = new DTOGymWorkout();
+        DTOGymWorkout emptyGymWorkout = new DTOGymWorkout(null, null, 0,0.0,null,false);
 
         GymWorkout oldGymWorkout = new GymWorkout();
         oldGymWorkout.setGymWorkoutId(gymWorkout3.getGymWorkoutId());

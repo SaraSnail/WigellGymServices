@@ -29,7 +29,7 @@ public class GymWorkout {
     @Column(name = "gym_workout_price", nullable = false)
     private double price;
 
-    @ManyToOne//name=gym_instructor_gym_instructor_id
+    @ManyToOne
     @JoinColumn(name = "gym_instructor_gym_instructor_id",nullable = false)
     private GymInstructor gymInstructor;
 

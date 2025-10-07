@@ -114,7 +114,7 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
         gymCustomer1 = new GymCustomer("mia", true);
         gymCustomer2 = new GymCustomer("helen", true);
         gymCustomer3 = new GymCustomer("will", false);
-        gymCustomer4 = new GymCustomer("pelle", true);//no bookings
+        gymCustomer4 = new GymCustomer("pelle", true);
         gymCustomerAllTrue = new GymCustomer("quill", true);
 
         gymInstructor1 = new GymInstructor("Clara Klarkson", TrainingType.DANCE, true);
@@ -413,7 +413,7 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
                         .with(user("mia").roles("USER")))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
-                .andExpect(result -> assertEquals("404 NOT_FOUND \"Currency conversion failed\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+                .andExpect(result -> assertEquals("404 NOT_FOUND \"Currency conversion failed. \nSek: "+gymBooking1.getPrice()+"\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
 
@@ -490,6 +490,19 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
                 .andExpect(result -> assertEquals("No GymWorkout with id ["+falseId+"] found", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
+    @Test
+    void bookWorkout_ShouldThrowIfWorkoutIsInactive() throws Exception{
+        gymWorkout3.setActive(false);
+        gymWorkoutRepository.save(gymWorkout3);
+
+        mockMvc.perform(post("/wigellgym/bookworkout/"+gymWorkout3.getGymWorkoutId())
+                        .with(user("mia").roles("USER"))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"Workout is not active\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    }
+
 
     @Test
     void bookWorkout_ShouldThrowIfWorkoutAlreadyHappened() throws Exception {
@@ -525,7 +538,7 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
-                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time. Each workout is 60min\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
     @Test
@@ -538,9 +551,8 @@ class GymBookingServiceImplGymUserAndAdminControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertInstanceOf(ResponseStatusException.class, result.getResolvedException()))
-                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"You have already booked a workout at this time. Each workout is 60min\"", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
-
 
     @Test
     void bookWorkout_ShouldThrowIfWorkoutIsFullyBooked() throws Exception {

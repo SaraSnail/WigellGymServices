@@ -32,44 +32,37 @@ public class GymAdminController {
     }
 
 
-    //• Lista avbokningar: GET /api/wigellgym/listcanceled
     @GetMapping("/listcanceled")
     public ResponseEntity<List<DTOGymBooking>> listCanceled() {
         return ResponseEntity.ok(gymBookingService.getCancelledGymBookings());
     }
 
-    //• Lista kommande bokningar: GET /api/wigellgym/listupcoming
     @GetMapping("/listupcoming")
     public ResponseEntity<List<DTOGymBooking>> listUpcoming() {
         return ResponseEntity.ok(gymBookingService.upComingGymBookings());
     }
 
-    //• Lista historiska bokningar: GET /api/wigellgym/listpast
     @GetMapping("/listpast")
     public ResponseEntity<List<DTOGymBooking>> listPast() {
         return ResponseEntity.ok(gymBookingService.pastGymBookings());
     }
 
 
-    //• Lägg till träningspass: POST /api/wigellgym/addworkout
     @PostMapping("/addworkout/{instructorId}")
     public ResponseEntity<GymWorkout> addWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long instructorId, Authentication authentication) {
         return new ResponseEntity<>(gymWorkoutService.addGymWorkout(dtoGymWorkout,instructorId, authentication),HttpStatus.CREATED);
     }
 
-    //• Uppdatera träningspass: PUT /api/wigellgym/updateworkout
     @PutMapping("/updateworkout/{workoutId}/{instructorId}")
     public ResponseEntity<GymWorkout> updateWorkout(@RequestBody DTOGymWorkout dtoGymWorkout, @PathVariable Long workoutId, @PathVariable Long instructorId, Authentication authentication) {
         return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(dtoGymWorkout, workoutId, instructorId, authentication));
     }
 
-    //• Radera träningspass: DELETE /api/wigellgym/remworkout/{id}
     @PutMapping("/remworkout/{id}")
     public ResponseEntity<String> removeWorkout(@PathVariable Long id,Authentication authentication) {
         return ResponseEntity.ok(gymWorkoutService.removeGymWorkout(id,authentication));
     }
 
-    //• Lägg till instruktör: POST /api/wigellgym/addinstructor
     @PostMapping("/addinstructor")
     public ResponseEntity<GymInstructor> addInstructor(@RequestBody DTOGymInstructor dtoGymInstructor, Authentication authentication) {
         return new ResponseEntity<>(gymInstructorService.addGymInstructor(dtoGymInstructor, authentication), HttpStatus.CREATED);

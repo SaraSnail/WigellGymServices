@@ -12,11 +12,11 @@ public class GymBooking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long gymBookingId;
 
-    @ManyToOne//name=gym_customer_gym_customer_id
+    @ManyToOne
     @JoinColumn(name = "gym_customer_gym_customer_id",nullable = false)
     private GymCustomer gymCustomer;
 
-    @ManyToOne//name=gym_workout_gym_workout_id
+    @ManyToOne
     @JoinColumn(name = "gym_workout_gym_workout_id",nullable = false)
     private GymWorkout gymWorkout;
 
