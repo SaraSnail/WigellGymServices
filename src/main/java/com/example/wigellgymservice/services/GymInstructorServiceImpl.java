@@ -52,9 +52,10 @@ public class GymInstructorServiceImpl implements GymInstructorService {
 
         gymInstructorRepository.save(gymInstructor);
 
-        CHANGES_IN_DB_LOGGER.info("{} {} added instructor {} with speciality in {}",
+        CHANGES_IN_DB_LOGGER.info("{} {} added instructor. Id '{}, name '{}' with speciality in {}",
                 authentication.getAuthorities(),
                 authentication.getName(),
+                gymInstructor.getGymInstructorId(),
                 gymInstructor.getGymInstructorName(),
                 gymInstructor.getTrainingType());
 
@@ -74,13 +75,8 @@ public class GymInstructorServiceImpl implements GymInstructorService {
         if(dtoGymInstructor.getGymInstructorName() == null || dtoGymInstructor.getGymInstructorName().isBlank() || dtoGymInstructor.getGymInstructorName().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Gym Instructor name is empty");
         }
-
         if(dtoGymInstructor.getTrainingType() == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is empty");
-        }
-
-        if(!validateTrainingType.validTrainingType(dtoGymInstructor.getTrainingType().toString())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Training Type is not valid");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "TrainingType can't be empty/null");
         }
 
     }
