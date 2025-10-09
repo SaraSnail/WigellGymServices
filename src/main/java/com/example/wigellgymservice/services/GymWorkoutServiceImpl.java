@@ -83,10 +83,11 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         gymWorkoutRepository.save(gymWorkout);
 
-        CHANGES_IN_DB_LOGGER.info("{} {} added a {} workout on {} with instructor {}",
+        CHANGES_IN_DB_LOGGER.info("{} {} added a {} workout, id '{}', on {} with instructor {}",
                 authentication.getAuthorities(),
                 authentication.getName(),
                 gymWorkout.getTrainingType(),
+                gymWorkout.getGymWorkoutId(),
                 gymWorkout.getDateTime(),
                 gymWorkout.getGymInstructor().getGymInstructorName());
 

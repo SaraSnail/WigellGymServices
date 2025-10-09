@@ -191,7 +191,7 @@ public class GymBookingServiceImpl implements GymBookingService {
         gymBookingRepository.save(booking);
         gymCustomerRepository.save(customer);
 
-        CHANGES_IN_DB_LOGGER.info("{} {} canceled booking '{}', a {} workout with {}",
+        CHANGES_IN_DB_LOGGER.info("{} {} canceled booking id '{}', a {} workout with {}",
                 authentication.getAuthorities(),
                 customer.getUsername(),
                 bookingId,
