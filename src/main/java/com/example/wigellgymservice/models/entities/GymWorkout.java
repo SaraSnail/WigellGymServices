@@ -111,6 +111,18 @@ public class GymWorkout {
         this.isActive = isActive;
     }
 
+    public GymWorkout(GymWorkout otherGymWorkout) {
+        this.gymWorkoutId = otherGymWorkout.gymWorkoutId;
+        this.name = otherGymWorkout.name;
+        this.trainingType = otherGymWorkout.trainingType;
+        this.maxParticipants = otherGymWorkout.maxParticipants;
+        this.price = otherGymWorkout.price;
+        this.gymInstructor = otherGymWorkout.gymInstructor;
+        this.dateTime = otherGymWorkout.dateTime;
+        this.isActive = otherGymWorkout.isActive;
+        this.gymBookings = otherGymWorkout.gymBookings;
+    }
+
     public Long getGymWorkoutId() {
         return gymWorkoutId;
     }

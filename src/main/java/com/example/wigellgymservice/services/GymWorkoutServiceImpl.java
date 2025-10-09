@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -99,7 +100,9 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
             throw new ResourceNotFoundException("GymWorkout","id",workoutId);
         }
 
-        GymWorkout oldGymWorkout = findGymWorkout.get();
+        GymWorkout gymWorkout = findGymWorkout.get();
+
+        GymWorkout oldGymWorkout = new GymWorkout(gymWorkout);
 
         Optional<GymInstructor> instructor = gymInstructorRepository.findById(instructorId);
         if(instructor.isEmpty()){
@@ -108,11 +111,13 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         GymInstructor gymInstructor = instructor.get();
 
-        GymWorkout updatedWorkout = nullValues(dtoGymWorkout, oldGymWorkout);
+        GymWorkout updatedWorkout = nullValues(dtoGymWorkout, gymWorkout);
 
         validateGymWorkout(updatedWorkout);
         checkIfInstructorBooked(updatedWorkout, gymInstructor);
         updatedWorkout.setGymInstructor(gymInstructor);
+
+        ifEquals(updatedWorkout, oldGymWorkout);
 
         String changes = "Changes: original -> change\n" +
                 "Name: " + oldGymWorkout.getName() +newName +"\n" +
@@ -121,7 +126,7 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
                 "Price sek: "+oldGymWorkout.getPrice() + newPrice + "\n" +
                 "Gym instructor name: "+oldGymWorkout.getGymInstructor().getGymInstructorName() + newGymInstructorName +"\n" +
                 "Date time: "+oldGymWorkout.getDateTime() + newDateTime+ "\n" +
-                "Is active: "+oldGymWorkout.isActive() + " -> "+updatedWorkout.isActive();
+                "Is active: "+updatedWorkout.isActive();
 
 
         CHANGES_IN_DB_LOGGER.info("{} {} updated workout with id '{}'. \n{}",
@@ -172,9 +177,6 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         }
 
-
-
-
         gymWorkout.setActive(false);
 
         gymWorkoutRepository.save(gymWorkout);
@@ -211,6 +213,7 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
     }
 
     private GymWorkout nullValues(DTOGymWorkout dtoGymWorkout, GymWorkout gymWorkout){
+
         if(dtoGymWorkout.getName() != null){
             gymWorkout.setName(dtoGymWorkout.getName());
             newName = arrow +dtoGymWorkout.getName();
@@ -260,6 +263,27 @@ public class GymWorkoutServiceImpl implements GymWorkoutService {
 
         if(!now.isBefore(gymWorkout.getDateTime().minusMinutes(30))){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid gym workout date. Have to be at least 30 minutes after now");
+        }
+    }
+
+    private void ifEquals(GymWorkout update, GymWorkout old){
+        if(!Objects.equals(update.getName(), old.getName())){
+            newName = arrow +update.getName();
+        }
+        if(!Objects.equals(update.getTrainingType(), old.getTrainingType())){
+            newTrainingType = arrow +update.getTrainingType();
+        }
+        if(!Objects.equals(update.getMaxParticipants(), old.getMaxParticipants())){
+            newMaxParticipants = arrow +update.getMaxParticipants();
+        }
+        if(!Objects.equals(update.getPrice(), old.getPrice())){
+            newPrice = arrow +update.getPrice();
+        }
+        if(!Objects.equals(update.getDateTime(), old.getDateTime())){
+            newDateTime = arrow +update.getDateTime();
+        }
+        if(!Objects.equals(update.getGymInstructor().getGymInstructorName(), old.getGymInstructor().getGymInstructorName())){
+            newGymInstructorName = arrow +update.getGymInstructor().getGymInstructorName();
         }
     }
 
