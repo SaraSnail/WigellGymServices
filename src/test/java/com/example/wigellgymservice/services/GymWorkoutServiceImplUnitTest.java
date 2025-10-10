@@ -499,16 +499,8 @@ class GymWorkoutServiceImplUnitTest {
         when(gymWorkoutRepository.findById(gymWorkout3.getGymWorkoutId())).thenReturn(Optional.ofNullable(gymWorkout3));
         when(gymInstructorRepository.findById(gymInstructor1.getGymInstructorId())).thenReturn(Optional.ofNullable(gymInstructor1));
 
-        GymWorkout oldGymWorkout = new GymWorkout();
-        oldGymWorkout.setGymWorkoutId(gymWorkout3.getGymWorkoutId());
-        oldGymWorkout.setName(gymWorkout3.getName());
-        oldGymWorkout.setTrainingType(gymWorkout3.getTrainingType());
-        oldGymWorkout.setMaxParticipants(gymWorkout3.getMaxParticipants());
-        oldGymWorkout.setPrice(gymWorkout3.getPrice());
-        oldGymWorkout.setDateTime(gymWorkout3.getDateTime());
-        oldGymWorkout.setGymInstructor(gymWorkout3.getGymInstructor());
-        oldGymWorkout.setActive(gymWorkout3.isActive());
-        oldGymWorkout.setGymBookings(gymWorkout3.getGymBookings());
+
+        GymWorkout oldGymWorkout = new GymWorkout(gymWorkout3);
 
         GymWorkout updatedGymWorkout = gymWorkoutService.updateGymWorkout(
                 update,
