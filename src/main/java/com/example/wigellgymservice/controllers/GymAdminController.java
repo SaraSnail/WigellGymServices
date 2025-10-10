@@ -58,9 +58,9 @@ public class GymAdminController {
         return ResponseEntity.ok(gymWorkoutService.updateGymWorkout(dtoGymWorkout, workoutId, instructorId, authentication));
     }
 
-    @PutMapping("/remworkout/{id}")
-    public ResponseEntity<String> removeWorkout(@PathVariable Long id,Authentication authentication) {
-        return ResponseEntity.ok(gymWorkoutService.removeGymWorkout(id,authentication));
+    @PutMapping("/remworkout/{workoutId}")
+    public ResponseEntity<String> removeWorkout(@PathVariable Long workoutId,Authentication authentication) {
+        return ResponseEntity.ok(gymWorkoutService.removeGymWorkout(workoutId,authentication));
     }
 
     @PostMapping("/addinstructor")
